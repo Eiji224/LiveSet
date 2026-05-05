@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BodyPart;
+use App\Http\Requests\Trainings\ExerciseStoreRequest;
+use App\Http\Requests\Trainings\ExerciseUpdateRequest;
 use App\Models\Exercise;
-use Illuminate\Http\Request;
 
 class ExerciseController extends Controller
 {
@@ -20,20 +22,16 @@ class ExerciseController extends Controller
      */
     public function create()
     {
-        return view('exercises.create');
+        $bodyParts = BodyPart::values();
+        return view('exercises.create', compact('bodyParts'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ExerciseStoreRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'string|nullable',
-            'instruction' => 'string|nullable',
-            'body_part' => 'required|string'
-        ]);
+        $request->validated();
 
         $exercise = Exercise::create([
             'title' => $request->title,
@@ -64,7 +62,7 @@ class ExerciseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Exercise $exercise)
+    public function update(ExerciseUpdateRequest $request, Exercise $exercise)
     {
         //
     }
