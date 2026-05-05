@@ -1,9 +1,8 @@
 <x-app-layout>
-    <div class="flex min-h-screen justify-center items-center">
-        <div class="flex flex-col p-4 gap-3 bg-white rounded-xl shadow-xl">
+    <div class="flex justify-center items-center">
+        <div class="flex flex-col w-full p-4 gap-3">
             <h1 class="text-center text-xl">Новая тренировка</h1>
-
-            <div id="react-app"></div>
+            <div id="react-app" data-exercises="{{ json_encode($exercises) }}"></div>
         </div>
     </div>
 

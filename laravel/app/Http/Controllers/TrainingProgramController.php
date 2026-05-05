@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exercise;
 use App\Models\TrainingProgram;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,9 @@ class TrainingProgramController extends Controller
      */
     public function create()
     {
-        return view('training.create');
+        $exercises = Exercise::all();
+
+        return view('training.create', compact('exercises'));
     }
 
     /**
