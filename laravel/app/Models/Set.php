@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Set extends Model
 {
@@ -19,9 +18,8 @@ class Set extends Model
         return $this->belongsTo(Exercise::class);
     }
 
-    public function trainingPrograms(): BelongsToMany
+    public function programExercise(): BelongsTo
     {
-        return $this->belongsToMany(TrainingProgram::class, 'trainings_sets')
-            ->withPivot(['set_quantity', 'order']);
+        return $this->belongsTo(ProgramExercise::class);
     }
 }

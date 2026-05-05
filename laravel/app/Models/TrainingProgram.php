@@ -14,10 +14,8 @@ class TrainingProgram extends Model
         'is_private',
     ];
 
-    public function sets(): BelongsToMany
+    public function programExercises(): BelongsToMany
     {
-        return $this->belongsToMany(Set::class, 'trainings_sets')
-            ->withPivot(['set_quantity', 'order'])
-            ->orderByPivot('order');
+        return $this->belongsToMany(ProgramExercise::class);
     }
 }

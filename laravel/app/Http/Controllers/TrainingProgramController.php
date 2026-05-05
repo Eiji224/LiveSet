@@ -20,7 +20,7 @@ class TrainingProgramController extends Controller
      */
     public function create()
     {
-        //
+        return view('training.create');
     }
 
     /**
