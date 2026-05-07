@@ -2,7 +2,7 @@ import '../bootstrap.js';
 import React, {useState} from 'react';
 import ReactDOM from 'react-dom/client';
 
-import AddButtons from "./components/AddButtons.jsx";
+import ControlButtons from "./components/ControlButtons.jsx";
 import ProgramExercise from "./components/ProgramExercise.jsx";
 
 const rootElement = document.getElementById('react-app');
@@ -15,6 +15,10 @@ if (rootElement) {
 }
 
 function TrainingProgram({ allExercises }) {
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [isPrivate, setIsPrivate] = useState(false)
+
     const [programExercises, setProgramExercises] = useState([])
     const [programToEdit, setProgramToEdit] = useState(null);
 
@@ -44,13 +48,77 @@ function TrainingProgram({ allExercises }) {
                     }]
                 };
             }
-
             return ex;
         }))
     };
 
+    const saveState = () => {
+        const baseExerciseTrainingTime = 2;
+        let trainingTime = 0;
+
+        programExercises.forEach(exercise => {
+            exercise.sets.forEach(set => {
+                trainingTime += baseExerciseTrainingTime;
+                trainingTime += set.restTime / 60000;
+            })
+        })
+
+        const training = {
+            title: title,
+            description: description,
+            isPrivate: isPrivate,
+            trainingTime: trainingTime,
+            programExercises: programExercises,
+        };
+
+        console.log(training)
+
+        axios.post('/api/training-programs', training)
+            .then(res => console.log('Success!'))
+            .catch(err => console.error(err.response.data));
+    };
+
     return (
         <div className="w-full h-full">
+            <div className="flex flex-col gap-3 p-5">
+                <input
+                    type="text"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    placeholder="Введите название тренировки..."
+                    className="w-full border rounded-lg text-center text-2xl"
+                />
+
+                <input
+                    type="text"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Введите описание тренировки..."
+                    className="w-full border rounded-lg text-center text-2xl"
+                />
+
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="isPrivate"
+                            checked={!isPrivate}
+                            onChange={() => setIsPrivate(false)}
+                        />
+                        Публичная тренировки
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="isPrivate"
+                            checked ={isPrivate}
+                            onChange={() => setIsPrivate(true)}
+                        />
+                        Приватная тренировки
+                    </label>
+                </div>
+            </div>
+
             <div className="flex gap-4">
                 <div className="flex flex-col w-1/2 gap-3">
                     {programExercises.map((ex, index) => (
@@ -69,10 +137,11 @@ function TrainingProgram({ allExercises }) {
                 </div>
 
                 <div className="w-1/4">
-                    <AddButtons
+                    <ControlButtons
                         exercises={allExercises}
                         onExerciseAdd={addExercise}
                         onAddSet={addSetToProgramExercise}
+                        onSave={saveState}
                     />
                 </div>
             </div>

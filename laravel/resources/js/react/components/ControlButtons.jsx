@@ -3,7 +3,7 @@ import Modal from "./Modal.jsx";
 
 // add exercises and add sets
 // modal for choosing exercise from the list of one
-export default function AddButtons({ exercises, onExerciseAdd, onAddSet }) {
+export default function ControlButtons({ exercises, onExerciseAdd, onAddSet, onSave }) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [exerciseToAdd, setExerciseToAdd] = useState(null);
     const exercisesArr = Object.values(exercises);
@@ -22,15 +22,21 @@ export default function AddButtons({ exercises, onExerciseAdd, onAddSet }) {
         <div className="flex flex-col gap-3 bg-white p-3 rounded-xl">
             <button
                 onClick={() => onAddSet()}
-                className="text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all"
+                className="text-white px-5 py-2 bg-sky-500 rounded-xl hover:bg-sky-700 hover:cursor-pointer transition-all"
             >
                 Добавить подход
             </button>
             <button
                 onClick={() => setIsAddOpen(true)}
-                className="text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all"
+                className="text-white px-5 py-2 bg-sky-500 rounded-xl hover:bg-sky-700 hover:cursor-pointer transition-all"
             >
                 Добавить упражнение
+            </button>
+            <button
+                onClick={() => onSave()}
+                className="mt-5 text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all"
+            >
+                Сохранить тренировку
             </button>
 
             <Modal isOpen={isAddOpen}>
@@ -41,7 +47,7 @@ export default function AddButtons({ exercises, onExerciseAdd, onAddSet }) {
                         {exercisesArr.map(exercise => (
                             <div
                                 key={exercise.id}
-                                className={`p-2 border border-gray-200 rounded-xl hover:cursor-pointer hover:border-gray-400 ${exercise === exerciseToAdd ? 'border-2 border-emerald-500 hover:border-emerald-500' : ''}`}
+                                className={`p-2 border rounded-xl hover:cursor-pointer ${exercise === exerciseToAdd ? 'border-2 border-emerald-500 hover:border-emerald-500' : 'border-gray-200 hover:border-gray-400'}`}
                                 onClick={() => setExerciseToAdd(exercise)}
                             >
                                 <p className="text-lg">{exercise.title}</p>
