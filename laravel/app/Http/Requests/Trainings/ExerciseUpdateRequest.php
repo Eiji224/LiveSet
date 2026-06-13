@@ -26,7 +26,7 @@ class ExerciseUpdateRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'body_part' => ['required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
-            'instructions' => ['required', 'string'],
+            'instruction' => ['required', 'string'],
         ];
     }
 
@@ -39,7 +39,7 @@ class ExerciseUpdateRequest extends FormRequest
             'body_part.required' => 'Укажите какую часть тела развивает упражнение',
             'body_part.max' => 'Название слишком длинное',
 
-            'instructions.required' => 'Напишите инструкцию к выполнению упражнения'
+            'instruction.required' => 'Напишите инструкцию к выполнению упражнения'
         ];
     }
 }

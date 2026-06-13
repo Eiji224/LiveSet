@@ -6,7 +6,6 @@ class ExerciseBase(BaseModel):
     body_part: str = Field(... ,max_length=255, description='Fhich part of body will be improved')
     instruction: str = Field(..., description='Instruction for exercise')
     description: Optional[str] = Field(None, description='Description of exercise')
-    user_id: int
 
 
 class ExerciseCreate(ExerciseBase):

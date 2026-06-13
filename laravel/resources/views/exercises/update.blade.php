@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     @if($errors->any())
         @foreach($errors->all() as $err)
             <p>{{ $err }}</p>
@@ -6,16 +6,18 @@
     @endif
     <div class="flex justify-center items-center min-h-screen bg-gray-100">
         <div class="flex flex-col p-8 gap-3 w-full max-w-md bg-white rounded-2xl shadow-lg">
-            <h1 class="text-center text-2xl font-medium py-3">Новое упражнение</h1>
-            <form method="POST" action="{{ route('exercises.store') }}" enctype="multipart/form-data">
+            <h1 class="text-center text-2xl font-medium py-3">{{ $exercise->title }}</h1>
+            <form method="POST" action="{{ route('exercises.update', $exercise) }}" enctype="multipart/form-data">
+                @method("PUT")
                 @csrf
-                
+
                 <div class="flex flex-col gap-3">
                     <div class="flex flex-col">
                         <lable for="title" class="text-sm font-medium text-gray-700">Название упражнения</lable>
                         <input
                             type="text"
                             name="title"
+                            value="{{ $exercise->title }}"
                             id="title"
                             placeholder="Название"
                             class="w-full rounded-xl border-gray-300 shadow-sm focus:border-sky-400 focus:ring-sky-500"
@@ -30,7 +32,7 @@
                             class="appearance-none w-full rounded-xl bg-gray-200 border border-gray-300 py-2 px-4 pr-8 leading-tight shadow-sm hover:cursor-pointer focus:outline-none focus:border-sky-400 focus:ring-sky-500"
                         >
                             @foreach($bodyParts as $bodyPart)
-                                <option value="{{ $bodyPart }}">{{ $bodyPart }}</option>
+                                <option value="{{ $bodyPart }}" @if($bodyPart === $exercise->body_part) selected @endif>{{ $bodyPart }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -43,7 +45,7 @@
                             placeholder="Описание"
                             rows="4"
                             class="w-full rounded-xl resize-none border-gray-300 shadow-sm focus:border-sky-400 focus:ring-sky-500"
-                        ></textarea>
+                        >{{ $exercise->description }}</textarea>
                     </div>
 
                     <div class="flex flex-col">
@@ -54,12 +56,12 @@
                             placeholder="Инструкция"
                             rows="8"
                             class="w-full rounded-xl resize-none border-gray-300 shadow-sm focus:border-sky-400 focus:ring-sky-500"
-                        ></textarea>
+                        >{{ $exercise->instruction }}</textarea>
                     </div>
                 </div>
 
                 <div class="flex justify-end mt-3">
-                    <input type="submit" value="Создать" class="text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all" />
+                    <input type="submit" value="Обновить" class="text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all" />
                 </div>
             </form>
         </div>

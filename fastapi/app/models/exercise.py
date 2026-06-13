@@ -12,5 +12,3 @@ class Exercise(Base):
     
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     instruction: Mapped[str] = mapped_column(Text, nullable=False)
-
-    user_id: Mapped[int] = mapped_column(index=True, nullable=False)
