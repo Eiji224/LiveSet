@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from redis.asyncio import ConnectionPool, Redis
+import redis.asyncio as redis
 
 from app.config import settings
 
@@ -11,13 +11,17 @@ engine = create_async_engine(DATABASE_URL, echo=settings.DEBUG)
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
+redis_pool = redis.ConnectionPool.from_url(
+    f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}",
+    encoding="utf-8",
+    decode_responses=True,
+    socket_keepalive=True,
+    health_check_interval=30,
+)
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
 
-async def get_redis() -> Redis:
-    return Redis(
-        host=settings.REDIS_HOST,
-        port=settings.REDIS_PORT,
-        decode_responses=True
-    )
+def get_redis() -> redis.Redis:
+    return redis.Redis(connection_pool=redis_pool)
