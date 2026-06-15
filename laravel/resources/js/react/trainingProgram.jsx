@@ -10,12 +10,13 @@ const rootElement = document.getElementById('react-app');
 
 if (rootElement) {
     const exercises = JSON.parse(rootElement.dataset.exercises)
+    const userId = rootElement.dataset.userid
 
     const root = ReactDOM.createRoot(rootElement);
-    root.render(<TrainingProgram allExercises={exercises} />);
+    root.render(<TrainingProgram allExercises={exercises} userId={userId} />);
 }
 
-function TrainingProgram({ allExercises }) {
+function TrainingProgram({ allExercises, userId }) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [isPrivate, setIsPrivate] = useState(false)
@@ -53,6 +54,21 @@ function TrainingProgram({ allExercises }) {
         }))
     };
 
+    const updateProgramExercise = (programId, setId, key, value) => {
+        setProgramExercises(prevPrograms => prevPrograms.map(program => {
+            if (program.id !== programId) return program;
+
+            return {
+                ...program,
+                sets: program.sets.map(set => {
+                    if (set.id !== setId) return set;
+
+                    return { ...set, [key]: value };
+                })
+            };
+        }));
+    };
+
     const saveState = () => {
         const baseExerciseTrainingTime = 60;
         let trainingTime = 0;
@@ -68,13 +84,14 @@ function TrainingProgram({ allExercises }) {
             title: title,
             description: description,
             isPrivate: isPrivate,
+            userId: userId,
             trainingTime: trainingTime,
             programExercises: programExercises,
         };
 
         console.log(training)
 
-        axios.post('/api/training-programs', training)
+        axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings`, training)
             .then(res => console.log('Success!'))
             .catch(err => console.error(err.response.data));
     };
@@ -101,6 +118,7 @@ function TrainingProgram({ allExercises }) {
                             <ProgramExercise
                                 data={ex}
                                 order={index + 1}
+                                onUpdateSet={updateProgramExercise}
                             />
                         </div>
 

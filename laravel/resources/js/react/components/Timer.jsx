@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-export default function Timer({ restTime }) {
+export default function Timer({ restTime, onUpdateTimer }) {
     const [initialSeconds, setInitialSeconds] = useState(restTime ? restTime : 150);
     const [timeLeft, setTimeLeft] = useState(restTime ? restTime : 150);
 
@@ -30,6 +30,8 @@ export default function Timer({ restTime }) {
             setInitialSeconds(totalSecs);
             setTimeLeft(totalSecs);
         }
+
+        onUpdateTimer(totalSecs);
     }
 
     const formatTime = (time) => {

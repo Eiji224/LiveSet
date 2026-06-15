@@ -41,7 +41,7 @@ async def create_exercise(payload: ExerciseCreate, db: AsyncSession = Depends(ge
     await db.refresh(new_exercise)
 
     return {
-        'status': 200,
+        'status': 201,
         'body': new_exercise,
         'errors': None
     }

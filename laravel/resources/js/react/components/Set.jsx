@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Timer from "./Timer";
 
-export default function Set({ setData, index }) {
+export default function Set({ setData, index, exerciseId, onUpdateSet }) {
     const [weight, setWeight] = useState(setData.weight ? setData.weight : "1");
     const [reps, setReps] = useState(setData.reps ? setData.reps : "1");
+
+    useEffect(() => {
+        onUpdateSet(exerciseId, setData.id, 'weight', weight);
+        onUpdateSet(exerciseId, setData.id, 'reps', reps);
+    }, [weight, reps]);
 
     return (
         <div className="flex flex-row justify-center items-center w-full gap-3 p-4">
@@ -31,8 +36,11 @@ export default function Set({ setData, index }) {
                             className="border rounded-lg px-2 py-1 max-w-16" />
                     </div>
                 </div>
-                
-                <Timer restTime={setData.restTime} />
+
+                <Timer
+                    restTime={setData.restTime}
+                    onUpdateTimer={(newTime) => onUpdateSet(exerciseId, setData.id, 'restTime', newTime)}
+                />
             </div>
         </div>
     );
