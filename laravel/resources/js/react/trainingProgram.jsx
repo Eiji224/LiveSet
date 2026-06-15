@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 
 import ControlButtons from "./components/ControlButtons.jsx";
 import ProgramExercise from "./components/ProgramExercise.jsx";
+import Header from './components/Header.jsx';
 
 const rootElement = document.getElementById('react-app');
 
@@ -42,9 +43,9 @@ function TrainingProgram({ allExercises }) {
                     ...ex,
                     sets:[...ex.sets, {
                         id: Date.now(),
-                        weight: 0,
-                        reps: 0,
-                        restTime: 3 * 60 * 1000,
+                        weight: 5,
+                        reps: 10,
+                        restTime: 150,
                     }]
                 };
             }
@@ -53,13 +54,13 @@ function TrainingProgram({ allExercises }) {
     };
 
     const saveState = () => {
-        const baseExerciseTrainingTime = 2;
+        const baseExerciseTrainingTime = 60;
         let trainingTime = 0;
 
         programExercises.forEach(exercise => {
             exercise.sets.forEach(set => {
                 trainingTime += baseExerciseTrainingTime;
-                trainingTime += set.restTime / 60000;
+                trainingTime += set.restTime;
             })
         })
 
@@ -80,44 +81,14 @@ function TrainingProgram({ allExercises }) {
 
     return (
         <div className="w-full h-full">
-            <div className="flex flex-col gap-3 p-5">
-                <input
-                    type="text"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder="Введите название тренировки..."
-                    className="w-full border rounded-lg text-center text-2xl"
-                />
-
-                <input
-                    type="text"
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder="Введите описание тренировки..."
-                    className="w-full border rounded-lg text-center text-2xl"
-                />
-
-                <div>
-                    <label>
-                        <input
-                            type="radio"
-                            name="isPrivate"
-                            checked={!isPrivate}
-                            onChange={() => setIsPrivate(false)}
-                        />
-                        Публичная тренировки
-                    </label>
-                    <label>
-                        <input
-                            type="radio"
-                            name="isPrivate"
-                            checked ={isPrivate}
-                            onChange={() => setIsPrivate(true)}
-                        />
-                        Приватная тренировки
-                    </label>
-                </div>
-            </div>
+            <Header
+                title={title}
+                setTitle={setTitle}
+                description={description}
+                setDescription={setDescription}
+                isPrivate={isPrivate}
+                setIsPrivate={setIsPrivate}
+            />
 
             <div className="flex gap-4">
                 <div className="flex flex-col w-1/2 gap-3">
