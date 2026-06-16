@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import ControlButtons from "./components/ControlButtons.jsx";
 import ProgramExercise from "./components/ProgramExercise.jsx";
 import Header from './components/Header.jsx';
+import ProgramExerciseControl from './components/ProgramExerciseControl.jsx';
 
 const rootElement = document.getElementById('react-app');
 
@@ -54,6 +55,19 @@ function TrainingProgram({ allExercises, userId }) {
         }))
     };
 
+    const deleteSetFromProgramExercise = () => {
+        const updated = programExercises.map(ex => {
+            if (ex.id !== programToEdit.id) return ex;
+
+            return {
+                ...ex,
+                sets: ex.sets.slice(0, -1)
+            };
+        });
+
+        setProgramExercises(updated);
+    }
+
     const updateProgramExercise = (programId, setId, key, value) => {
         setProgramExercises(prevPrograms => prevPrograms.map(program => {
             if (program.id !== programId) return program;
@@ -67,6 +81,50 @@ function TrainingProgram({ allExercises, userId }) {
                 })
             };
         }));
+    };
+
+    const liftProgramExercise = () => {
+        const index = programExercises.findIndex(ex => ex.id === programToEdit.id);
+        if (index === -1 || index <= 0) return;
+
+        const updatedExercises = [...programExercises];
+        
+        const temp = updatedExercises[index];
+        updatedExercises[index] = updatedExercises[index - 1];
+        updatedExercises[index - 1] = temp;
+
+        setProgramExercises(updatedExercises);
+    };
+
+    const lowerProgramExercise = () => {
+        const index = programExercises.findIndex(ex => ex.id === programToEdit.id);
+        
+        if (index === -1 || index === programExercises.length - 1) return;
+
+        const updatedExercises = [...programExercises];
+        
+        const temp = updatedExercises[index];
+        updatedExercises[index] = updatedExercises[index + 1];
+        updatedExercises[index + 1] = temp;
+
+        setProgramExercises(updatedExercises);
+    };
+
+    const deleteProgramExercise = () => {
+        const index = programExercises.findIndex(ex => ex.id === programToEdit.id);
+        if (index === -1) return;
+
+        const updatedExercises = programExercises.filter(ex => ex.id !== programToEdit.id);
+
+        if (updatedExercises.length === 0) {
+            setProgramToEdit(null);
+        } else if (index === 0) {
+            setProgramToEdit(updatedExercises[0]);
+        } else {
+            setProgramToEdit(updatedExercises[index - 1]);
+        }
+
+        setProgramExercises(updatedExercises);
     };
 
     const saveState = () => {
@@ -107,7 +165,15 @@ function TrainingProgram({ allExercises, userId }) {
                 setIsPrivate={setIsPrivate}
             />
 
-            <div className="flex gap-4">
+            <div className="mt-5 flex gap-7 justify-center">
+                <div className="sticky top-36 self-start">
+                    <ProgramExerciseControl
+                        onUp={liftProgramExercise}
+                        onDown={lowerProgramExercise}
+                        onDelete={deleteProgramExercise}
+                    />
+                </div>
+
                 <div className="flex flex-col w-1/2 gap-3">
                     {programExercises.map((ex, index) => (
                         <div
@@ -125,11 +191,12 @@ function TrainingProgram({ allExercises, userId }) {
                     ))}
                 </div>
 
-                <div className="w-1/4">
+                <div className="sticky top-36 self-start w-1/10">
                     <ControlButtons
                         exercises={allExercises}
                         onExerciseAdd={addExercise}
                         onAddSet={addSetToProgramExercise}
+                        onDeleteSet={deleteSetFromProgramExercise}
                         onSave={saveState}
                     />
                 </div>
