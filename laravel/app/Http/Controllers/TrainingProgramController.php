@@ -13,7 +13,9 @@ class TrainingProgramController extends Controller
      */
     public function index()
     {
-        //
+        $trainingPrograms = TrainingProgram::with('user')->paginate(10);
+
+        return view('training.index', compact('trainingPrograms'));
     }
 
     /**
@@ -39,7 +41,9 @@ class TrainingProgramController extends Controller
      */
     public function show(TrainingProgram $trainingProgram)
     {
-        //
+        $exercises = Exercise::all();
+
+        return view('training.show', compact('exercises', 'trainingProgram'));
     }
 
     /**

@@ -15,5 +15,10 @@ class ApiResponse(BaseModel, Generic[T]):
     }
 
 
+class RedisMessage(BaseModel):
+    type: str
+    payload: str
+
+
 class StatusCreated(BaseModel):
     created: bool = True

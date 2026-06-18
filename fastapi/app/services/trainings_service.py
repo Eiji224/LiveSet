@@ -1,4 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.models import Set, ProgramExercise, TrainingProgram
 from app.schemas import TrainingProgramSchema
@@ -44,5 +46,14 @@ async def CreateTraining(response: TrainingProgramSchema, db: AsyncSession):
             write_log(f"Failed to save training: {e}")
             raise e
     
-    await db.refresh(training_program)
-    return training_program
+    stmt = (
+        select(TrainingProgram)
+        .where(TrainingProgram.id == training_program.id)
+        .options(
+            selectinload(TrainingProgram.program_exercises)
+            .selectinload(ProgramExercise.sets)
+        )
+    )
+    result = await db.execute(stmt)
+
+    return result.scalar_one_or_none()

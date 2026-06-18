@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingProgram extends Model
@@ -12,11 +13,12 @@ class TrainingProgram extends Model
         'description',
         'training_time',
         'is_private',
+        'exercises_qty',
         'user_id',
     ];
 
-    public function programExercises(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(ProgramExercise::class, 'training_id');
+        return $this->belongsTo(User::class);
     }
 }

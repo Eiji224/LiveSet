@@ -10,15 +10,25 @@ from app.models import Exercise
 from app.services.logger import write_log, logger
 
 
+CHANNEL_NAME = "liveset-events"
+
+
+async def send_message(message: str):
+    redis_clinet = get_redis()
+    write_log("Publishing...")
+    try:
+        await redis_clinet.publish(CHANNEL_NAME, message)
+    except Exception as e:
+        write_log(f"Error has occured: {e}")
+
 async def start_redis_listener():
     write_log("Redis listener task started")
     redis_client = get_redis()
     pubsub = redis_client.pubsub()
-    channel_name = "liveset-events"
 
     try:
-        await pubsub.subscribe(channel_name)
-        write_log(f"Worker has subscribed to Redis channel: {channel_name}")
+        await pubsub.subscribe(CHANNEL_NAME)
+        write_log(f"Worker has subscribed to Redis channel: {CHANNEL_NAME}")
 
         while True:
             try:

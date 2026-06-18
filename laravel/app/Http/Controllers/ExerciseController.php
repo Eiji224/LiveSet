@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BodyPart;
+use App\Enums\RedisMessageType;
 use App\Http\Requests\Trainings\ExerciseStoreRequest;
 use App\Http\Requests\Trainings\ExerciseUpdateRequest;
 use App\Models\Exercise;
@@ -42,7 +43,7 @@ class ExerciseController extends Controller
         ]);
 
         $redisMessage = [
-            'type' => 'exercise_created',
+            'type' => RedisMessageType::EXERCISE_CREATED,
             'payload' => $exercise,
         ];
         Redis::publish('liveset-events', json_encode($redisMessage));
@@ -72,7 +73,7 @@ class ExerciseController extends Controller
      */
     public function update(ExerciseUpdateRequest $request, Exercise $exercise)
     {
-        $validated = $request->validated();
+        $request->validated();
         $exercise->update([
             'title' => $request->title,
             'description' => $request->description,
@@ -81,7 +82,7 @@ class ExerciseController extends Controller
         ]);
 
         $redis_message = [
-            'type' => 'exercise_updated',
+            'type' => RedisMessageType::EXERCISE_UPDATED,
             'payload' => $exercise,
         ];
         Redis::publish('liveset-events', json_encode($redis_message));
@@ -95,7 +96,7 @@ class ExerciseController extends Controller
     public function destroy(Exercise $exercise)
     {
         $redis_message = [
-            'type' => 'exercise_deleted',
+            'type' => RedisMessageType::EXERCISE_DELETED,
             'payload' => [
                 'id' => $exercise->id,
             ],

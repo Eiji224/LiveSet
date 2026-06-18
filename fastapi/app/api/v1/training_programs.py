@@ -6,8 +6,8 @@ from sqlalchemy.orm import selectinload
 from typing import List
 
 from app.models import TrainingProgram, ProgramExercise
-from app.services import CreateTraining
-from app.schemas import ApiResponse, StatusCreated, TrainingProgramSchema
+from app.services import CreateTraining, redis_publish_event
+from app.schemas import ApiResponse, StatusCreated, TrainingProgramSchema, RedisMessage
 from app.database import get_db
 
 
@@ -50,12 +50,19 @@ async def read_training_program(training_id: int, response: Response, db: AsyncS
 @router.post('/', response_model=ApiResponse[StatusCreated])
 async def create_training_program(payload: TrainingProgramSchema, db: AsyncSession = Depends(get_db)):
     try:
-        await CreateTraining(payload, db)
+        training = await CreateTraining(payload, db)
+
+        pydantic_model = TrainingProgramSchema.model_validate(training)
+        message = RedisMessage(
+            type="training_program_created",
+            payload=pydantic_model.model_dump_json()
+        )
+        await redis_publish_event(message.model_dump_json())
     except Exception as e:
         return {
             'status': 500,
             'body': None,
-            'errors': e
+            'errors': str(e)
         }
     
     return {
