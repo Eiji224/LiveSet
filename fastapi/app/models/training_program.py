@@ -13,4 +13,4 @@ class TrainingProgram(Base):
     is_private: Mapped[bool] = mapped_column(Boolean, nullable=False)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    program_exercises: Mapped[List["ProgramExercise"]] = relationship(back_populates="training_program", cascade="all, delete-orphan")
+    program_exercises: Mapped[List["ProgramExercise"]] = relationship(back_populates="training_program", cascade="all, delete-orphan", order_by="ProgramExercise.order")

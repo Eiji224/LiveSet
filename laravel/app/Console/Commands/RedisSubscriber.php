@@ -42,7 +42,13 @@ class RedisSubscriber extends Command
 
             switch ($type) {
                 case RedisMessageType::TRAINING_PROGRAM_CREATED->value:
-                    $this->handleTrainingProgramCreated($payload);
+                    $this->handleTrainingProgramCreatedUpdated($payload, RedisMessageType::TRAINING_PROGRAM_CREATED);
+                    break;
+                case RedisMessageType::TRAINING_PROGRAM_UPDATED->value:
+                    $this->handleTrainingProgramCreatedUpdated($payload, RedisMessageType::TRAINING_PROGRAM_UPDATED);
+                    break;
+                case RedisMessageType::TRAINING_PROGRAM_DELETED->value:
+                    $this->handleTrainingProgramDeleted($payload);
                     break;
                 default:
                     break;
@@ -50,8 +56,9 @@ class RedisSubscriber extends Command
         });
     }
 
-    protected function handleTrainingProgramCreated(array $payload)
+    protected function handleTrainingProgramCreatedUpdated(array $payload, RedisMessageType $type): void
     {
+        $id = $payload['id'];
         $title = $payload['title'];
         $description = $payload['description'];
         $isPrivate = $payload['is_private'];
@@ -65,15 +72,47 @@ class RedisSubscriber extends Command
 
         $exercisesQty = count($payload['program_exercises']);
 
-        TrainingProgram::create([
-            'title' => $title,
-            'description' => $description,
-            'is_private' => $isPrivate,
-            'training_time' => $trainingTime,
-            'user_id' => $user->id,
-            'exercises_qty' => $exercisesQty,
-        ]);
+        if ($type === RedisMessageType::TRAINING_PROGRAM_CREATED) {
+            TrainingProgram::create([
+                'title' => $title,
+                'description' => $description,
+                'is_private' => $isPrivate,
+                'training_time' => $trainingTime,
+                'user_id' => $user->id,
+                'exercises_qty' => $exercisesQty,
+            ]);
 
-        $this->info("Training program $title created");
+            $this->info("Training program $title created");
+        } else {
+            $training = TrainingProgram::find($id);
+            if (!$training) {
+                $this->error('Training program not found');
+                return;
+            }
+            $training->update([
+                'title' => $title,
+                'description' => $description,
+                'is_private' => $isPrivate,
+                'training_time' => $trainingTime,
+                'user_id' => $user->id,
+                'exercises_qty' => $exercisesQty,
+            ]);
+
+            $this->info("Training program $title updated");
+        }
+    }
+
+    protected function handleTrainingProgramDeleted(array $payload): void
+    {
+        $id = $payload['id'];
+
+        $trainingProgram = TrainingProgram::find($id);
+        if (!$trainingProgram) {
+            $this->error('Training program not found');
+            return;
+        }
+
+        $trainingProgram->delete();
+        $this->info("Training program $id deleted");
     }
 }

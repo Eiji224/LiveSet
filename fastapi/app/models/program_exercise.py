@@ -16,4 +16,4 @@ class ProgramExercise(Base):
 
     training_program: Mapped["TrainingProgram"] = relationship(back_populates="program_exercises")
     exercise: Mapped["Exercise"] = relationship(back_populates="program_exercises")
-    sets: Mapped[List["Set"]] = relationship(back_populates="program_exercise", cascade="all, delete-orphan")
+    sets: Mapped[List["Set"]] = relationship(back_populates="program_exercise", cascade="all, delete-orphan", order_by="Set.order")

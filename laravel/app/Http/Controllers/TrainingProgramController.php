@@ -39,11 +39,11 @@ class TrainingProgramController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TrainingProgram $trainingProgram)
+    public function show(TrainingProgram $training)
     {
         $exercises = Exercise::all();
 
-        return view('training.show', compact('exercises', 'trainingProgram'));
+        return view('training.show', compact(['exercises', 'training']));
     }
 
     /**
@@ -57,7 +57,7 @@ class TrainingProgramController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TrainingProgram $trainingProgram)
+    public function update(Request $request, TrainingProgram $training)
     {
         //
     }
@@ -65,7 +65,7 @@ class TrainingProgramController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TrainingProgram $trainingProgram)
+    public function destroy(TrainingProgram $training)
     {
         //
     }

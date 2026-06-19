@@ -3,7 +3,7 @@ import Modal from "./Modal.jsx";
 
 // add exercises and add sets
 // modal for choosing exercise from the list of one
-export default function ControlButtons({ exercises, onExerciseAdd, onAddSet, onDeleteSet, onSave }) {
+export default function ControlButtons({ trainingId, exercises, onExerciseAdd, onAddSet, onDeleteSet, onSave, onDeleteTraining }) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [exerciseToAdd, setExerciseToAdd] = useState(null);
     const exercisesArr = Object.values(exercises);
@@ -17,6 +17,13 @@ export default function ControlButtons({ exercises, onExerciseAdd, onAddSet, onD
 
         setExerciseToAdd(null);
     }
+
+    const deleteButton = <button
+        onClick={() => onDeleteTraining()}
+        className="mt-5 text-white px-5 py-2 bg-red-500 rounded-xl hover:bg-red-700 hover:cursor-pointer transition-all"
+    >
+        Удалить тренировку
+    </button>
 
     return (
         <div className="flex flex-col gap-3 bg-white p-3 rounded-xl">
@@ -47,6 +54,8 @@ export default function ControlButtons({ exercises, onExerciseAdd, onAddSet, onD
             >
                 Сохранить тренировку
             </button>
+
+            {trainingId && deleteButton}
 
             <Modal isOpen={isAddOpen}>
                 <div className="flex flex-col gap-3">

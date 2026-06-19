@@ -1,5 +1,5 @@
 import '../bootstrap.js';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ReactDOM from 'react-dom/client';
 
 import ControlButtons from "./components/ControlButtons.jsx";
@@ -12,18 +12,40 @@ const rootElement = document.getElementById('react-app');
 if (rootElement) {
     const exercises = JSON.parse(rootElement.dataset.exercises)
     const userId = rootElement.dataset.userid
+    const trainingId = rootElement.dataset.trainingid
 
     const root = ReactDOM.createRoot(rootElement);
-    root.render(<TrainingProgram allExercises={exercises} userId={userId} />);
+    root.render(<TrainingProgram allExercises={exercises} userId={userId} trainingId={trainingId} />);
 }
 
-function TrainingProgram({ allExercises, userId }) {
+function TrainingProgram({ allExercises, userId, trainingId }) {
+    const [isNewTraining, setIsNewTraining] = useState(true);
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [isPrivate, setIsPrivate] = useState(false)
 
     const [programExercises, setProgramExercises] = useState([])
     const [programToEdit, setProgramToEdit] = useState(null);
+
+
+    useEffect(() => {
+        if (!trainingId) return;
+
+        setIsNewTraining(false);
+        axios.get(`${import.meta.env.VITE_API_URL}/api/v1/trainings/${trainingId}`)
+            .then(res => {
+                const body = res.data.body;
+
+                console.log(body);
+
+                setTitle(body.title);
+                setDescription(body.description);
+                setIsPrivate(body.isPrivate);
+                setProgramExercises(body.programExercises);
+            })
+            .catch(err => console.error(err.response.data));
+    }, [trainingId]);
 
     const addExercise = (exerciseData) => {
         const newProgramExercise = {
@@ -88,7 +110,7 @@ function TrainingProgram({ allExercises, userId }) {
         if (index === -1 || index <= 0) return;
 
         const updatedExercises = [...programExercises];
-        
+
         const temp = updatedExercises[index];
         updatedExercises[index] = updatedExercises[index - 1];
         updatedExercises[index - 1] = temp;
@@ -98,11 +120,11 @@ function TrainingProgram({ allExercises, userId }) {
 
     const lowerProgramExercise = () => {
         const index = programExercises.findIndex(ex => ex.id === programToEdit.id);
-        
+
         if (index === -1 || index === programExercises.length - 1) return;
 
         const updatedExercises = [...programExercises];
-        
+
         const temp = updatedExercises[index];
         updatedExercises[index] = updatedExercises[index + 1];
         updatedExercises[index + 1] = temp;
@@ -147,12 +169,22 @@ function TrainingProgram({ allExercises, userId }) {
             programExercises: programExercises,
         };
 
-        console.log(training)
-
-        axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings`, training)
-            .then(res => console.log('Success!'))
-            .catch(err => console.error(err.response.data));
+        if (isNewTraining) {
+            axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings`, training)
+                .then(() => window.location.href="/trainings")
+                .catch(err => console.error(err.response.data));
+        } else {
+            axios.put(`${import.meta.env.VITE_API_URL}/api/v1/trainings/${trainingId}`, training)
+                .then(() => console.log('Success!'))
+                .catch(err => console.error(err.response.data))
+        }
     };
+
+    const deleteTraining = () => {
+        axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/trainings/${trainingId}`)
+            .then(() => window.location.href="/trainings")
+            .catch(err => console.error(err.response.data))
+    }
 
     return (
         <div className="w-full h-full">
@@ -193,11 +225,13 @@ function TrainingProgram({ allExercises, userId }) {
 
                 <div className="sticky top-36 self-start w-1/10">
                     <ControlButtons
+                        trainingId={trainingId}
                         exercises={allExercises}
                         onExerciseAdd={addExercise}
                         onAddSet={addSetToProgramExercise}
                         onDeleteSet={deleteSetFromProgramExercise}
                         onSave={saveState}
+                        onDeleteTraining={deleteTraining}
                     />
                 </div>
             </div>

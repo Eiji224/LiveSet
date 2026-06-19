@@ -11,7 +11,7 @@ export default function Set({ setData, index, exerciseId, onUpdateSet }) {
     }, [weight, reps]);
 
     return (
-        <div className="flex flex-row justify-center items-center w-full gap-3 p-4">
+        <div className="flex flex-row justify-center items-center w-full gap-3 p-4 border border-gray-200 rounded-xl">
             <span>{index}</span>
             <div className="flex flex-col gap-3 flex-1">
                 <div className="flex justify-between px-10">
