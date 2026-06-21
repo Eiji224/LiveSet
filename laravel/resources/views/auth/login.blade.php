@@ -43,5 +43,10 @@
                 {{ __('Log in') }}
             </x-primary-button>
         </div>
+
+        <a href="{{ route('oauth.github') }}" class="flex flex-row gap-2 items-center justify-center mt-5 bg-black text-white py-2 rounded-xl">
+            <img src="{{ asset('icons/github_ico.svg') }}" alt="github" width="32" height="32" class="invert" />
+            Войти через GitHub
+        </a>
     </form>
 </x-guest-layout>
