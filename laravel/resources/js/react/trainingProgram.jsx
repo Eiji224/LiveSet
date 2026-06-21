@@ -225,7 +225,7 @@ function TrainingProgram({ allExercises, userId, trainingId, liveTrainingId }) {
     const saveState = () => {
         const training = getCurrentState();
         if (isNewTraining) {
-            axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings`, training)
+            axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings/`, training)
                 .then(() => window.location.href="/trainings")
                 .catch(err => console.error(err.response.data));
         } else {
