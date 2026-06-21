@@ -1,58 +1,119 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LiveSet
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**LiveSet** - это веб-платформа для создания индивидуальных тренировочных программ и проведения онлайн-тренировок в режиме реального времени. Проект построен на гибридной микросервисной архитектуре: Laravel отвечает за аутентификацию (включая OAuth через GitHub), рендеринг UI на React и базовый CRUD с SSR, в то время как FastAPI берет на себя CRUD тренировок и связанных с ними сущностей, обработку высоконагруженных сокет-соединений для синхронизации тренировочного процесса (сетов, таймеров отдыха) между пользователями в реальном времени. Обмен событиями между бэкендами осуществляется через Redis.
 
-## About Laravel
+## Основные сценарии использования
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Авторизация:** Регистрация локального аккаунта или быстрый вход через GitHub (Socialite);
+* **Создание упражнений:** Создание упражнений, для последующего создания из них тренировок;
+* **Конструктор тренировок:** Создание приватных или публичных программ тренировок (`TrainingProgram`), добавление упражнений (`Exercises`);
+* **Детализация подходов:** Настройка веса, количества повторений и времени отдыха для каждого сета в рамках упражнения;
+* **Live-сессии:** Запуск тренировки с генерацией уникальной ссылки (`unique_url`);
+* **Real-time синхронизация:** Подключение пользователей к Live-сессии по ссылке. Любое действие хоста (завершение подхода, запуск таймера отдыха) мгновенно синхронизируется у всех участников через WebSockets (FastAPI).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Архитектура системы
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Трафик из интернета поступает на Nginx, который выступает единой точкой входа (Reverse Proxy), распределяя HTTP/HTTPS запросы в Laravel, а запросы к API и WebSockets (`/api/*`, `/api/v1/ws/*`) — в контейнер FastAPI.
 
-## Learning Laravel
+```text
+                  [ Интернет / Браузер ]
+                            |
+                            v
++-----------------------------------------------------------+
+|                          Nginx                            |
+|             (Reverse Proxy, Ports: 80 / 443)              |
++-----------------------------------------------------------+
+          |                                       |
+  (HTTP/HTTPS - UI)                   (HTTPS / WSS - API)
+          |                                       |
+          v                                       v
++-------------------+                   +-------------------+
+|  Laravel + React  |                   |      FastAPI      |
+| (Управление БД    |                   | (WebSockets,      |
+| юзеров, сессий)   |                   | логика тренировок)|
++-------------------+                   +-------------------+
+          |                 +-------+                 |
+          |---------------->| Redis |<----------------|
+          |                 +-------+                 |
+          v                                           v
++-------------------+                       +--------------------+
+|  MySQL (liveset)  |                       | MySQL (liveset_api)|
++-------------------+                       +--------------------+
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Структура баз данных
 
-## Contributing
+Проект использует подход Database-per-Service.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### База данных Laravel (`liveset`)
 
-## Code of Conduct
+Управляет пользователями, их доступом и сессиями.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+* **`Users`**: Данные пользователей (name, email, password, github_id, github_token, github_refresh_token);
+* **`LiveSessions`**: Активные комнаты групповых тренировок (unique_url, status, training_program_id, host_user_id);
+* **`TrainingProgram`**: Базовая информация о программах для отображения через SSR (title, description, training_time, is_private, exercises_qty, user_id);
+* **`Exercises`**: Справочник доступных упражнений (title, description, instruction, body_part).
 
-## Security Vulnerabilities
+### База данных FastAPI (`liveset_api`)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Отвечает за глубокую логику тренировочного процесса и иерархию подходов.
 
-## License
+* **`Exercises`**: Копия упражнений, созданных через Laravel (синхронизация через Redis);
+* **`TrainingProgram`**: Основные информация о тренировке (title, description, training_time, is_private, exercises_qty, user_id);
+* **`ProgramExercises`** (Связующая): Определяет, какие упражнения входят в конкретную программу, и задает порядок их выполнения (title, order, training_program_id, exercise_id).
+* **`Set`** (Подходы): Детализирует каждое упражнение в программе. Хранит данные о весе, повторениях и времени отдыха (weight, reps, rest_time, program_exercise_id).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Быстрый запуск (Docker)
+
+Для локального развертывания проекта вам потребуется установленный Docker и Docker Compose.
+
+**1. Клонирование репозитория**
+
+```bash
+git clone https://github.com/Eiji224/LiveSet.git
+cd liveset
+
+```
+
+**2. Настройка переменных окружения**
+Создайте файлы окружения на основе примеров:
+
+```bash
+cp .env.example .env
+cp fastapi/.env.example fastapi/.env
+cp laravel/.env.example laravel/.env
+
+```
+
+**3 Nginx**
+Сгенерируйте SSL сертификаты и поместите их в директорию docker/nginx/certs
+Также отредактируйте конфиг nginx под сертификаты в директории docker/nginx/configs
+
+
+**4. Сборка и запуск контейнеров**
+
+```bash
+docker compose up -d --build
+
+```
+
+**4. Запуск миграций**
+Так как проект использует две независимые базы данных, миграции нужно выполнить для обоих бэкендов:
+
+Для Laravel (основная БД):
+
+```bash
+docker compose exec laravel-app php artisan migrate
+
+```
+
+Для FastAPI (БД тренировок):
+
+```bash
+docker compose exec fastapi alembic upgrade head
+
+```
+
+**5. Готово**
+Откройте в браузере: `https://localhost` (или ваш настроенный локальный домен, например `https://liveset.local`)
