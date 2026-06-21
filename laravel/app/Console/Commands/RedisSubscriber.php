@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\LiveSessionStatus;
 use App\Enums\RedisMessageType;
+use App\Models\LiveSession;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Console\Attributes\Description;
@@ -49,6 +51,10 @@ class RedisSubscriber extends Command
                     break;
                 case RedisMessageType::TRAINING_PROGRAM_DELETED->value:
                     $this->handleTrainingProgramDeleted($payload);
+                    break;
+
+                case RedisMessageType::LIVE_SESSION_STOPPED->value:
+                    $this->handleLiveSessionStopped($payload);
                     break;
                 default:
                     break;
@@ -114,5 +120,20 @@ class RedisSubscriber extends Command
 
         $trainingProgram->delete();
         $this->info("Training program $id deleted");
+    }
+
+    protected function handleLiveSessionStopped(array $payload): void
+    {
+        $uniqueUrl = $payload['unique_url'];
+        $liveSession = LiveSession::where('unique_url', $uniqueUrl)->first();
+        if (!$liveSession) {
+            $this->error('Invalid unique url');
+            return;
+        }
+
+        $liveSession->status = LiveSessionStatus::completed;
+        $liveSession->save();
+
+        $this->info("Live session $liveSession->id ended successfully");
     }
 }

@@ -8,6 +8,8 @@ class SetSchema(TuningModel):
     weight: int = Field(..., description='Weight that used in set')
     reps: int = Field(..., description='How many times exercise was done in this set')
     rest_time: int = Field(..., description='Time need to rest after set in sec')
+    timer_status: Optional[str] = None
+    timer_updated_at: Optional[str] = None
 
 
 class ProgramExerciseSchema(TuningModel):

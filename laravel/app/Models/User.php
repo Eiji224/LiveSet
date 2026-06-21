@@ -36,4 +36,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(TrainingProgram::class);
     }
+
+    public function liveSessions(): HasMany
+    {
+        return $this->hasMany(LiveSession::class, 'host_user_id');
+    }
 }

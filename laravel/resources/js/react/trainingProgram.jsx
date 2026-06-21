@@ -1,5 +1,5 @@
 import '../bootstrap.js';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom/client';
 
 import ControlButtons from "./components/ControlButtons.jsx";
@@ -7,19 +7,35 @@ import ProgramExercise from "./components/ProgramExercise.jsx";
 import Header from './components/Header.jsx';
 import ProgramExerciseControl from './components/ProgramExerciseControl.jsx';
 
+import useWebSocket from './hooks/useWebSocket.jsx';
+
 const rootElement = document.getElementById('react-app');
 
 if (rootElement) {
-    const exercises = JSON.parse(rootElement.dataset.exercises)
-    const userId = rootElement.dataset.userid
-    const trainingId = rootElement.dataset.trainingid
+    const exercises = JSON.parse(rootElement.dataset.exercises);
+    const userId = rootElement.dataset.userid;
+    const trainingId = rootElement.dataset.trainingid;
+    const liveTrainingId = rootElement.dataset.livetrainingid;
 
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(<TrainingProgram allExercises={exercises} userId={userId} trainingId={trainingId} />);
+    let root = window.__reactRoot;
+    if (!root) {
+        root = ReactDOM.createRoot(rootElement);
+        window.__reactRoot = root;
+    }
+
+    root.render(
+        <TrainingProgram
+            allExercises={exercises}
+            userId={userId}
+            trainingId={trainingId}
+            liveTrainingId={liveTrainingId}
+        />
+    );
 }
 
-function TrainingProgram({ allExercises, userId, trainingId }) {
+function TrainingProgram({ allExercises, userId, trainingId, liveTrainingId }) {
     const [isNewTraining, setIsNewTraining] = useState(true);
+    const [isLiveTraining, setIsLiveTraining] = useState(liveTrainingId !== undefined)
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -28,24 +44,78 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
     const [programExercises, setProgramExercises] = useState([])
     const [programToEdit, setProgramToEdit] = useState(null);
 
+    const isIncomingUpdate = useRef(false);
+    const isLoaded = useRef(false);
+
+
+    const updateState = (body) => {
+        setIsNewTraining(false);
+
+        isIncomingUpdate.current = true;
+
+        setTitle(body.title);
+        setDescription(body.description);
+        setIsPrivate(body.isPrivate);
+        setProgramExercises(body.programExercises);
+
+        isLoaded.current = true;
+    }
+
+    const getCurrentState = () => {
+        const baseExerciseTrainingTime = 60;
+        let trainingTime = 0;
+
+        programExercises.forEach(exercise => {
+            exercise.sets.forEach(set => {
+                trainingTime += baseExerciseTrainingTime;
+                trainingTime += set.restTime;
+            })
+        });
+
+        return {
+            title: title,
+            description: description,
+            isPrivate: isPrivate,
+            userId: userId,
+            trainingTime: trainingTime,
+            programExercises: programExercises,
+        };
+    }
+
+    const sendMessage = useWebSocket(userId, liveTrainingId, updateState);
+    useEffect(() => {
+        if (!isLiveTraining) return;
+        if (!isLoaded.current) return;
+
+        if (isIncomingUpdate.current) {
+            isIncomingUpdate.current = false;
+            return;
+        }
+
+        const currentState = getCurrentState();
+        if (!currentState.title && currentState.programExercises.length === 0) return;
+
+        const message = {
+            type: 'update_state',
+            senderId: userId,
+            payload: currentState
+        }
+        sendMessage(message);
+    }, [programExercises]);
 
     useEffect(() => {
-        if (!trainingId) return;
+        if (!trainingId || isLiveTraining) return;
 
-        setIsNewTraining(false);
         axios.get(`${import.meta.env.VITE_API_URL}/api/v1/trainings/${trainingId}`)
             .then(res => {
                 const body = res.data.body;
 
                 console.log(body);
 
-                setTitle(body.title);
-                setDescription(body.description);
-                setIsPrivate(body.isPrivate);
-                setProgramExercises(body.programExercises);
+                updateState(body);
             })
             .catch(err => console.error(err.response.data));
-    }, [trainingId]);
+    }, [trainingId, isLiveTraining]);
 
     const addExercise = (exerciseData) => {
         const newProgramExercise = {
@@ -70,6 +140,8 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
                         weight: 5,
                         reps: 10,
                         restTime: 150,
+                        timerStatus: "waiting",
+                        timerUpdatedAt: new Date().toISOString(),
                     }]
                 };
             }
@@ -98,6 +170,7 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
                 ...program,
                 sets: program.sets.map(set => {
                     if (set.id !== setId) return set;
+                    if (key === 'timerStatus') return { ...set, [key]: value, timerUpdatedAt: new Date().toISOString() }
 
                     return { ...set, [key]: value };
                 })
@@ -150,25 +223,7 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
     };
 
     const saveState = () => {
-        const baseExerciseTrainingTime = 60;
-        let trainingTime = 0;
-
-        programExercises.forEach(exercise => {
-            exercise.sets.forEach(set => {
-                trainingTime += baseExerciseTrainingTime;
-                trainingTime += set.restTime;
-            })
-        })
-
-        const training = {
-            title: title,
-            description: description,
-            isPrivate: isPrivate,
-            userId: userId,
-            trainingTime: trainingTime,
-            programExercises: programExercises,
-        };
-
+        const training = getCurrentState();
         if (isNewTraining) {
             axios.post(`${import.meta.env.VITE_API_URL}/api/v1/trainings`, training)
                 .then(() => window.location.href="/trainings")
@@ -183,12 +238,22 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
     const deleteTraining = () => {
         axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/trainings/${trainingId}`)
             .then(() => window.location.href="/trainings")
-            .catch(err => console.error(err.response.data))
-    }
+            .catch(err => console.error(err.response.data));
+    };
+
+    const stopLiveTraining = () => {
+        axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/ws/${liveTrainingId}`)
+            .then(() => {
+                saveState();
+                window.location.href = "/trainings";
+            })
+            .catch(err => console.error(err.response.data));
+    };
 
     return (
         <div className="w-full h-full">
             <Header
+                isLiveTraining={isLiveTraining}
                 title={title}
                 setTitle={setTitle}
                 description={description}
@@ -227,11 +292,13 @@ function TrainingProgram({ allExercises, userId, trainingId }) {
                     <ControlButtons
                         trainingId={trainingId}
                         exercises={allExercises}
+                        isLiveTraining={isLiveTraining}
                         onExerciseAdd={addExercise}
                         onAddSet={addSetToProgramExercise}
                         onDeleteSet={deleteSetFromProgramExercise}
                         onSave={saveState}
                         onDeleteTraining={deleteTraining}
+                        onEndLive={stopLiveTraining}
                     />
                 </div>
             </div>

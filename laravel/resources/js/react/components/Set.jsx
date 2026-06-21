@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import Timer from "./Timer";
 
 export default function Set({ setData, index, exerciseId, onUpdateSet }) {
-    const [weight, setWeight] = useState(setData.weight ? setData.weight : "1");
-    const [reps, setReps] = useState(setData.reps ? setData.reps : "1");
-
-    useEffect(() => {
-        onUpdateSet(exerciseId, setData.id, 'weight', weight);
-        onUpdateSet(exerciseId, setData.id, 'reps', reps);
-    }, [weight, reps]);
+    const weight = setData.weight ?? 1;
+    const reps = setData.reps ?? 1;
+    const timerStatus = setData.timerStatus;
+    const timerUpdatedAt = setData.timerUpdatedAt;
 
     return (
         <div className="flex flex-row justify-center items-center w-full gap-3 p-4 border border-gray-200 rounded-xl">
@@ -21,25 +18,28 @@ export default function Set({ setData, index, exerciseId, onUpdateSet }) {
                             type="number"
                             value={weight}
                             min="1"
-                            onChange={e => setWeight(Number(e.target.value))}
+                            onChange={e => onUpdateSet(exerciseId, setData.id, 'weight', Number(e.target.value))}
                             className="border rounded-lg px-2 py-1 max-w-16"
                         /> кг
                     </div>
 
                     <div>
-                        <label>Подходы: </label>
+                        <label>Повторения: </label>
                         <input
                             type="number"
                             value={reps}
                             min="1"
-                            onChange={e => setReps(Number(e.target.value))}
+                            onChange={e => onUpdateSet(exerciseId, setData.id, 'reps', Number(e.target.value))}
                             className="border rounded-lg px-2 py-1 max-w-16" />
                     </div>
                 </div>
 
                 <Timer
                     restTime={setData.restTime}
+                    timerStatus={timerStatus}
+                    timerUpdatedAt={timerUpdatedAt}
                     onUpdateTimer={(newTime) => onUpdateSet(exerciseId, setData.id, 'restTime', newTime)}
+                    onUpdateStatus={(newStatus) => onUpdateSet(exerciseId, setData.id, 'timerStatus', newStatus)}
                 />
             </div>
         </div>

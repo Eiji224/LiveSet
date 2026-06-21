@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.database import get_redis, get_db
 from app.models import Exercise
 from app.services.logger import write_log, logger
+from app.services.live_training_manager import live_training_manager
 
 
 CHANNEL_NAME = "liveset-events"
@@ -59,6 +60,8 @@ async def start_redis_listener():
                     await delete_exercise(data_payload)
                 case "exercise_updated":
                     await update_exercise(data_payload)
+                case "live_session_started":
+                    await handle_live_session_start(data_payload)
                 case _:
                     logger.info(f"Unknown redis message type: {data_type}")
 
@@ -125,3 +128,15 @@ async def delete_exercise(payload: dict):
                 write_log(f"Exercise with id={payload["id"]} not found")
         except Exception as e:
             logger.error(f"Failed to delete exercise: {e}")
+
+async def handle_live_session_start(payload: dict):
+    from app.services.trainings_service import find_training_program
+
+    async with asynccontextmanager(get_db)() as db:
+        training = await find_training_program(int(payload["training_program_id"]), db)
+
+    live_training_manager.start_training(
+        training=training,
+        host_user_id=payload["host_user_id"],
+        unique_url=payload["unique_url"]
+    )

@@ -3,7 +3,7 @@ import Modal from "./Modal.jsx";
 
 // add exercises and add sets
 // modal for choosing exercise from the list of one
-export default function ControlButtons({ trainingId, exercises, onExerciseAdd, onAddSet, onDeleteSet, onSave, onDeleteTraining }) {
+export default function ControlButtons({trainingId, exercises, isLiveTraining, onExerciseAdd, onAddSet, onDeleteSet, onSave, onDeleteTraining, onEndLive }) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [exerciseToAdd, setExerciseToAdd] = useState(null);
     const exercisesArr = Object.values(exercises);
@@ -23,6 +23,18 @@ export default function ControlButtons({ trainingId, exercises, onExerciseAdd, o
         className="mt-5 text-white px-5 py-2 bg-red-500 rounded-xl hover:bg-red-700 hover:cursor-pointer transition-all"
     >
         Удалить тренировку
+    </button>
+
+    const startLiveButton = <button
+            onClick={() => window.location.href=`/liveTraining?training_program_id=${trainingId}`}
+            className="text-white px-5 py-2 bg-sky-500 rounded-xl hover:bg-sky-700 hover:cursor-pointer transition-all"
+        >Начать Live тренировку</button>
+
+    const endLiveButton = <button
+        onClick={() => onEndLive()}
+        className="mt-5 text-white px-5 py-2 bg-red-500 rounded-xl hover:bg-red-700 hover:cursor-pointer transition-all"
+    >
+        Закончить Live тренировку
     </button>
 
     return (
@@ -48,14 +60,20 @@ export default function ControlButtons({ trainingId, exercises, onExerciseAdd, o
                 </button>
             </div>
 
-            <button
-                onClick={() => onSave()}
-                className="mt-5 text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all"
-            >
-                Сохранить тренировку
-            </button>
+            <div className="flex flex-col gap-3 mt-5">
+                {(trainingId && !isLiveTraining) && startLiveButton}
 
-            {trainingId && deleteButton}
+                <button
+                    onClick={() => onSave()}
+                    className="text-white px-5 py-2 bg-emerald-500 rounded-xl hover:bg-emerald-700 hover:cursor-pointer transition-all"
+                >
+                    Сохранить тренировку
+                </button>
+
+                {(trainingId && !isLiveTraining) && deleteButton}
+
+                {(trainingId && isLiveTraining) && endLiveButton}
+            </div>
 
             <Modal isOpen={isAddOpen}>
                 <div className="flex flex-col gap-3">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrainingProgramController;
+use App\Http\Controllers\LiveSessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,6 +21,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('exercises', ExerciseController::class);
     Route::resource('trainings', TrainingProgramController::class);
+
+    Route::get('/liveTraining', [LiveSessionController::class, 'store'])->name('liveTrainings.store');
+    Route::get('/liveTraining/{uniqueUrl}', [LiveSessionController::class, 'show'])->name('liveTrainings.show');
 });
 
 require __DIR__.'/auth.php';

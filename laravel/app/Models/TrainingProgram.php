@@ -21,4 +21,9 @@ class TrainingProgram extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function liveSessions(): HasMany
+    {
+        return $this->hasMany(LiveSession::class);
+    }
 }
