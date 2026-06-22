@@ -7,7 +7,7 @@
     <div class="mt-5 flex flex-col gap-5 items-center">
         <a
             href="{{ route('trainings.create') }}"
-            class="w-1/2 m-10 py-3 px-5 rounded-xl text-center text-xl text-white bg-sky-500 hover:bg-sky-700 transition-all"
+            class="w-1/2 m-10 py-3 px-5 rounded-xl text-center text-xl text-white bg-emerald-500 hover:bg-emerald-700 transition-all"
         >
             Создать новую программу
         </a>

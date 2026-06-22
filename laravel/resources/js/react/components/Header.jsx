@@ -7,7 +7,7 @@ export default function Header({ isLiveTraining, title, setTitle, description, s
             disabled={isLiveTraining}
             onChange={e => setTitle(e.target.value)}
             placeholder="Введите название тренировки..."
-            className="w-full border rounded-lg text-center text-2xl"
+            className="w-full border rounded-lg text-center text-2xl focus:ring-2 focus:ring-emerald-500"
         />
 
         <input
@@ -16,7 +16,7 @@ export default function Header({ isLiveTraining, title, setTitle, description, s
             disabled={isLiveTraining}
             onChange={e => setDescription(e.target.value)}
             placeholder="Введите описание тренировки..."
-            className="w-full border rounded-lg text-center text-2xl"
+            className="w-full border rounded-lg text-center text-2xl focus:ring-2 focus:ring-emerald-500"
         />
 
         <div>
